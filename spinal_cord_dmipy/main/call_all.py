@@ -1,0 +1,12 @@
+from main import main_intra_extra_rest
+from main import main_intra_extra_rest_fix_par
+from main import main_intra_extra_rest_intraeqextra
+from main import main_intra_extra_rest_intra_watson
+from main import main_intra_extra_rest_intra_bingham
+
+main_intra_extra_rest.main()
+main_intra_extra_rest_fix_par.main()
+main_intra_extra_rest_intraeqextra.main()
+main_intra_extra_rest_intra_watson.main()
+main_intra_extra_rest_intra_bingham.main()
+
