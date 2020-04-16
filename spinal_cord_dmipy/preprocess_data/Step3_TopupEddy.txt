@@ -1,0 +1,18 @@
+
+
+
+
+for i in diff*; 
+do 
+	echo $i
+	
+	topup --imain=$i/b0_all --datain=../../Code/acqparams.txt --config=../../Code/b02b0.cnf --out=$i/topup_results --iout=$i/topup_results_iout --fout=$i/topup_results_fout
+	
+	fslmaths $i/topup_results_iout -Tmean $i/nodif_mean
+	
+	sct_create_mask -i $i/nodif_mean.nii.gz -p center -o $i/cylinder_mask.nii.gz -size 100
+	
+	eddy --imain=$i/dwmri_all.nii --mask=$i/cylinder_mask.nii.gz --acqp=../../Code/acqparams.txt --index=../../Code/index.txt --bvecs=$i/dwmri_all.bvec --bvals=$i/dwmri_all.bval --topup=$i/topup_results --out=$i/eddy_unwarped_images
+
+done
+	
