@@ -27,7 +27,7 @@ from dmipy.signal_models import cylinder_models as cyn  # Intra Diffusion Modeli
 from dmipy.signal_models import gaussian_models as gsn  # Extra Diffusion Modeling
 from dmipy.signal_models import sphere_models as sph  # Restricted Diffusion Modeling
 from dmipy.core.modeling_framework import MultiCompartmentModel
-
+from dmipy.distributions.distribute_models import BundleModel
 
 def main():
     # Define Base Data Paths here
@@ -128,8 +128,7 @@ def main():
 
     gaussian_dict = {
         'G1': gsn.G1Ball,
-        'G2': gsn.G2Zeppelin,
-        'G3': gsn.G3TemporalZeppelin
+        'G2': gsn.G2Zeppelin
     }
 
     sphere_dict = {
@@ -170,26 +169,27 @@ def main():
             cylinder = cyn_val()
             gaussian = gsn_val()
 
-            multi_compat_model = MultiCompartmentModel(models=[cylinder, gaussian])
+            bundle_model = BundleModel([cylinder, gaussian])
+            print(bundle_model.parameter_names)
 
             # TODO If more than two mu exist, implies multiple orientation based measures exist
             # Hence for them we will identify them and set them to be equal to each other.
             mu_list = []
-            for each_para_name in multi_compat_model.parameter_names:
+            for each_para_name in bundle_model.parameter_names:
                 # Last three characters of parameter
                 mu_type = each_para_name[-2:]
                 if mu_type == 'mu':
                     mu_list.append(each_para_name)
 
             if len(mu_list) == 2:
-                multi_compat_model.set_equal_parameter(mu_list[0], mu_list[1])
+                bundle_model.set_equal_parameter(mu_list[0], mu_list[1])
             # End of mu conditions
 
             # TODO We will be setting a tortuosity link between perpendicular and parallel diffusivity
             # TODO The perpendicular diffusivity always belongs to G2 and the parallel diffusivity exists
             #  at other places however, it should always come from the cylinders/intracellular compartments.
             par_list = []
-            for each_para_name in multi_compat_model.parameter_names:
+            for each_para_name in bundle_model.parameter_names:
                 # Last three characters of parameter
                 diffusivity_type = each_para_name[-3:]
                 if diffusivity_type == 'par':
@@ -197,7 +197,7 @@ def main():
                     #multi_compat_model.set_fixed_parameter(each_para_name, 1.7e-9)
 
             perp_list = []
-            for each_para_name in multi_compat_model.parameter_names:
+            for each_para_name in bundle_model.parameter_names:
                 # Last three characters of parameter
                 diffusivity_type = each_para_name[-4:]
                 if diffusivity_type == 'perp':
@@ -205,18 +205,18 @@ def main():
                     #multi_compat_model.set_fixed_parameter(each_para_name, 1.7e-9)
 
             if len(perp_list)>=1 and len(par_list)>=1:
-                multi_compat_model.set_tortuous_parameter(
-                                                          perp_list[0],
-                                                          par_list[0],
-                                                          'partial_volume_0',
-                                                          'partial_volume_1'
-                                                          )
+                bundle_model.set_tortuous_parameter(
+                                                   perp_list[0],
+                                                   par_list[0],
+                                                   'partial_volume_0'
+                                                   )
 
+            multi_compat_model = MultiCompartmentModel(models=[bundle_model])
 
             print(multi_compat_model.parameter_names)
 
             ######## FC #########
-            fc_model_fit = multi_compat_model.fit(Acq_Scheme, fc_data, use_parallel_processing=False, solver='brute2fine')
+            fc_model_fit = multi_compat_model.fit(Acq_Scheme, fc_data, use_parallel_processing=False, solver='mix')
             fc_fitted_params = fc_model_fit.fitted_parameters
             fc_model_signal = fc_model_fit.predict()
 
@@ -244,7 +244,7 @@ def main():
             #####################
 
             ######## LC #########
-            lc_model_fit = multi_compat_model.fit(Acq_Scheme, lc_data, use_parallel_processing=False, solver='brute2fine')
+            lc_model_fit = multi_compat_model.fit(Acq_Scheme, lc_data, use_parallel_processing=False, solver='mix')
             lc_fitted_params = lc_model_fit.fitted_parameters
             lc_model_signal = lc_model_fit.predict()
 
@@ -272,7 +272,7 @@ def main():
             #####################
 
             ######## SL #########
-            sl_model_fit = multi_compat_model.fit(Acq_Scheme, sl_data, use_parallel_processing=False, solver='brute2fine')
+            sl_model_fit = multi_compat_model.fit(Acq_Scheme, sl_data, use_parallel_processing=False, solver='mix')
             sl_fitted_params = sl_model_fit.fitted_parameters
             sl_model_signal = sl_model_fit.predict()
 
@@ -300,7 +300,7 @@ def main():
             ######################
 
             ######## VC ##########
-            vc_model_fit = multi_compat_model.fit(Acq_Scheme, vc_data, use_parallel_processing=False, solver='brute2fine')
+            vc_model_fit = multi_compat_model.fit(Acq_Scheme, vc_data, use_parallel_processing=False, solver='mix')
             vc_fitted_params = vc_model_fit.fitted_parameters
             vc_model_signal = vc_model_fit.predict()
 
@@ -328,7 +328,7 @@ def main():
             ######################
 
             ######## VH #########
-            vh_model_fit = multi_compat_model.fit(Acq_Scheme, vh_data, use_parallel_processing=False, solver='brute2fine')
+            vh_model_fit = multi_compat_model.fit(Acq_Scheme, vh_data, use_parallel_processing=False, solver='mix')
             vh_fitted_params = vh_model_fit.fitted_parameters
             vh_model_signal = vh_model_fit.predict()
 

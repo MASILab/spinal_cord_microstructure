@@ -7,7 +7,7 @@ S1: Dot; S2: SphereStejskalTannerApproximation; S4: SphereGaussianPhaseApproxima
 Only Condition that will be applied is that if there are more than two sets of 'mu' then they will be set to equal
 as the orientational measures from two different compartments should be equivalent
 
-Parallel diffusivity compartments for Intra-cellular and extra-cellular are set to equal.
+Parallel diffusivity compartments for extra-cellular is set to be greater than Intra-cellular.
 
 If there are isotropic diffusivity compartments then they will be set to hard-value of 1.7e-9
 
